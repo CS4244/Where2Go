@@ -1,11 +1,11 @@
 (deftemplate destination
 (slot name (type STRING))
 (slot climate (type STRING))
-(slot visitMth(type NUMBER))
+(slot visitMth(type INTEGER))
 (slot englishSpeaking (type STRING) (default TRUE))
 (slot visitPurpose (type STRING))
 (slot region (type STRING))
-(slot budget (type NUMBER))
+(slot budget (type INTEGER))
 (slot activityType (type STRING))
 (slot indoorActivity (type STRING)(default FALSE))
 (slot outdoorActivity (type STRING)(default FALSE))
