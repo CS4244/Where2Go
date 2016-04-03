@@ -1,3 +1,7 @@
+; ; In destination, NULL is not allowed except in
+; ; waterActivity and outdoorActivity.
+; ; Here, a NULL means that the destination
+; ; has a lack of water/outdoor activity
 (deftemplate destination
 	(slot name (type STRING))
 	(slot englishSpeaking (type STRING) (default "No")(allowed-strings "Yes" "No"))
@@ -16,6 +20,7 @@
 
 ; ; desired stores user's desired destination properties
 ; ; idea is that "NULL" can be used to identify unasked properties
+; ; NULL is allowed for all slots here, as it is used to pattern match and fire questions.
 (deftemplate desired
 	; ;(slot name (type STRING))
 	(slot englishSpeaking (type STRING) (default "NULL")(allowed-strings "NULL" "Yes" "No"))
@@ -38,7 +43,7 @@
 )
 
 ; ; First, check desired and fire off questions to be asked
-(defrule fireQuestions
+(defrule fireWeatherQuestion
 ?desired <- (desired (weather "NULL"))
 =>
 (printout t "What is your ideal weather? (1.Hot; 2.Warm; 3.Mild; 4.Cold; 5.Frozen) ")
@@ -51,6 +56,60 @@
 	(case 5 then (modify ?desired (weather "Frozen")))
 )
 )
+
+; ; Fire english speaking destination preference question
+(defrule fireEnglishSpeakingQuestion
+?desired <- (desired (englishSpeaking "NULL"))
+=>
+(printout t "Do you prefer your destination to be an English-speaking destination? (1.Yes; 2.No) ")
+(bind ?n (read))
+(switch ?n 
+	(case 1 then (modify ?desired (englishSpeaking "Yes")))
+	(case 2 then (modify ?desired (englishSpeaking "No")))
+)
+)
+
+; ; Fire region preference question 
+(defrule fireRegionQuestion
+?desired <- (desired (region "NULL"))
+=>
+(printout t "What is your ideal destination region? (1.North America; 2.Europe; 3.Other) ")
+(bind ?n (read))
+(switch ?n 
+	(case 1 then (modify ?desired (region "North America")))
+	(case 2 then (modify ?desired (region "Europe")))
+	(case 3 then (modify ?desired (region "Other")))
+)
+)
+
+
+; ; First multislot question, two strings could be assigned to multislot activityType
+; ; Fire activityType preference question
+(defrule fireActivityTypeQuestion
+?desired <- (desired (activityType "NULL"))
+=>
+(printout t "What kind of activities do you wish to take part in? (1.Outdoor Activities; 2.Water Activities; 3.Both kinds) ")
+(bind ?n (read))
+(switch ?n 
+	(case 1 then (modify ?desired (activityType "Outdoor")))
+	(case 2 then (modify ?desired (activityType "Water")))
+	(case 3 then (modify ?desired (activityType "Water" "Outdoor")))
+)
+)
+
+; ; Fire outdoorActivity preference question
+(defrule fireOutdoorActivityQuestion
+?desired <- (desired (activityType $?x "Outdoor" $?y) (outdoorActivity "NULL"))			;; this ensures the rule is only fired once when it has not been asked yet.
+=>
+(printout t "What kind of outdoor activities are you interested in? (1.Hiking) ")
+(bind ?n (read))
+(switch ?n
+	(case 1 then (modify ?desired (outdoorActivity "Hiking")))
+)
+)
+
+
+
 
 
 ;;	(destination (name __) (englishSpeaking __) (visitPreference __) (region __) (geography __) (leisure __) (activityType __) (waterActivity __) (outdoorActivity __) (weather __))
