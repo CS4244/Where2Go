@@ -75,7 +75,7 @@
 (defrule fireActivityTypeQuestion
 ?desired <- (desired (activityType "NULL"))
 =>
-(assert (ask (question "What kind of activities do you wish to take part in?") (choice "Outdoor" "Water" "Water and Outdoor") (slotName "activityType") (questionType "CHECKBOX")))
+(assert (ask (question "What kind of activities do you wish to take part in?") (choice "Outdoor" "Water") (slotName "activityType") (questionType "CHECKBOX")))
 )
 
 
