@@ -12,7 +12,7 @@
 	(slot daysReq (type INTEGER))
 	(slot budget (type INTEGER))
 	(multislot activityType (type STRING)(allowed-strings "Water" "Outdoor"))
-	(multislot waterActivity (type STRING)(allowed-strings "NULL" "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
+	(multislot waterActivity (type STRING)(allowed-strings "NULL" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING)(allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
 	(slot weather (type STRING) (allowed-strings "Hot" "Warm" "Mild" "Cold" "Frozen"))
 )
@@ -38,7 +38,7 @@
 
 ; ; The initial facts
 (deffacts the-facts
-	(destination (name "Ha Long Bay") (englishSpeaking "No") (visitPreference "Off the Beaten Path" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Mountains" "Forest") (leisure "Casino" "Landmarks") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba") (outdoorActivity "Hiking") (weather "Warm"))
+	(destination (name "Ha Long Bay") (englishSpeaking "No") (visitPreference "Off the Beaten Path" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Mountains" "Forest") (leisure "Casino" "Landmarks") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Snorkelling") (outdoorActivity "Hiking") (weather "Warm"))
 	(desired)
 )
 
@@ -97,6 +97,21 @@
 )
 )
 
+; ; Fire waterActivity preference question
+(defrule fireWaterActivityQuestion
+?desired <- (desired (activityType $?x "Water" $?y) (waterActivity "NULL"))		
+=>
+(printout t "What kind of water activities are you interested in?")
+(bind ?n (read))
+(switch ?n
+	(case 1 then (modify ?desired (waterActivity "Surfing")))
+	(case 2 then (modify ?desired (waterActivity "Snorkelling")))
+	(case 3 then (modify ?desired (waterActivity "Water Park")))
+	(case 4 then (modify ?desired (waterActivity "Dolphin Encounter")))
+	(case 5 then (modify ?desired (waterActivity "Water Skiing")))
+	(case 6 then (modify ?desired (waterActivity "Wind Surfing")))
+)
+)
 ; ; Fire outdoorActivity preference question
 (defrule fireOutdoorActivityQuestion
 ?desired <- (desired (activityType $?x "Outdoor" $?y) (outdoorActivity "NULL"))			;; this ensures the rule is only fired once when it has not been asked yet.
@@ -105,6 +120,11 @@
 (bind ?n (read))
 (switch ?n
 	(case 1 then (modify ?desired (outdoorActivity "Hiking")))
+	(case 2 then (modify ?desired (outdoorActivity "Snow Skiing")))
+	(case 3 then (modify ?desired (outdoorActivity "Mountain Biking")))
+	(case 4 then (modify ?desired (outdoorActivity "Zip Line")))
+	(case 5 then (modify ?desired (outdoorActivity "Rock Climbing")))
+	(case 6 then (modify ?desired (outdoorActivity "Horseback Riding")))
 )
 )
 
