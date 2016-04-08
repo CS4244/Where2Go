@@ -81,13 +81,13 @@
 (defrule fireWaterActivityQuestion
 ?desired <- (desired (activityType $?x "Water" $?y) (waterActivity "NULL"))
 =>
-(assert (ask (question "What kind of water activities do you wish to take part in?") (choice "Surfing" "Scuba" "Water Skiing" "Wind Surfing" "Dolphin Encounter" "Water Park") (slotName "waterActivity") (questionType "CHECKBOX")))
+(assert (ask (question "What kind of water activities do you wish to take part in?") (choice "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter") (slotName "waterActivity") (questionType "CHECKBOX")))
 )
 
 (defrule fireOutdoorActivityQuestion
 ?desired <- (desired (activityType $?x "Outdoor" $?y) (outdoorActivity "NULL"))
 =>
-(assert (ask (question "What kind of outdoor activities do you wish to take part in?") (choice "Mountain Biking" "Rock Climbing" "Hiking" "Horseback Riding" "Skiing" "Zipline") (slotName "outdoorActivity") (questionType "CHECKBOX")))
+(assert (ask (question "What kind of outdoor activities do you wish to take part in?") (choice "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding") (slotName "outdoorActivity") (questionType "CHECKBOX")))
 )
 
 
