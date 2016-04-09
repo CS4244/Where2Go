@@ -63,13 +63,13 @@
 
 ; ; The initial facts
 (deffacts the-facts
-	(destination (name "Ha Long Bay") (englishSpeaking "No") (visitPreference "Off the Beaten Path" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Mountains" "Forest") (leisure "Casino" "Landmarks") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba") (outdoorActivity "Hiking") (weather "Warm"))
+	(destination (name "Ha Long Bay") (englishSpeaking "No") (visitPreference "Off the Beaten Path" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Mountains" "Forest") (leisure "Casino" "Landmarks") (budget 100)(activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba") (outdoorActivity "Hiking") (weather "Warm"))
 	
-	(destination (name "Hong Kong") (englishSpeaking "Yes") (visitPreference "Nightlife" "Family Friendly" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Museum" "Dining") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Park" "Dolphin Encounter") (outdoorActivity "Skiing") (weather "Warm"))
+	(destination (name "Hong Kong") (englishSpeaking "Yes") (visitPreference "Nightlife" "Family Friendly" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Museum" "Dining") (budget 170) (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Park" "Dolphin Encounter") (outdoorActivity "Skiing") (weather "Warm"))
 
-	(destination (name "Maldives") (englishSpeaking "Yes") (visitPreference "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Island") (leisure "Spa" "Landmarks" "Zoo") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Skiing" "Wind Surfing" "Dolphin Encounter") (outdoorActivity "Mountain Biking" "Rock Climbing") (weather "Warm"))
+	(destination (name "Maldives") (englishSpeaking "Yes") (visitPreference "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Island") (leisure "Spa" "Landmarks" "Zoo") (budget 540) (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Skiing" "Wind Surfing" "Dolphin Encounter") (outdoorActivity "Mountain Biking" "Rock Climbing") (weather "Warm"))
 
-	(destination (name "Bangkok") (englishSpeaking "No") (visitPreference "Local Culture" "Nightlife" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Spa" "Shopping" "Theme Park" "Museum" "Dining") (activityType "Outdoor") (outdoorActivity "Zipline") (weather "Hot"))
+	(destination (name "Bangkok") (englishSpeaking "No") (visitPreference "Local Culture" "Nightlife" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Spa" "Shopping" "Theme Park" "Museum" "Dining") (budget 100) (activityType "Outdoor") (outdoorActivity "Zipline") (weather "Hot"))
 
 	(desired)
 	;;(filter)
@@ -128,10 +128,16 @@
 (bind ?*userBudget*(* ?budget ?daysReq))
 )
 
+(defrule fireGeographyQuestion
+?desired <- (desired (geography "NULL"))
+=>
+(assert (ask (question "What is your geographic preference?") (choice "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island") (slotName "geography") (questionType "RADIO")))
+)
+
 (defrule fireWeatherQuestion
 ?desired <- (desired (weather "NULL"))
 =>
-(assert (ask (question "What is your ideal weather") (choice "Hot" "Warm" "Mild" "Cold") (slotName "weather")))
+(assert (ask (question "What is your ideal weather?") (choice "Hot" "Warm" "Mild" "Cold") (slotName "weather")))
 )
 
 (defrule fireEnglishSpeakingQuestion
@@ -144,6 +150,19 @@
 ?desired <- (desired (region "NULL"))
 =>
 (assert (ask (question "What is your ideal destination region?") (choice "North America" "Europe" "Other") (slotName "region")))
+)
+
+(defrule fireVisitPreferenceQuestion
+?desired <- (desired (visitPreference "NULL"))
+=>
+(assert (ask (question "Any visit preference?") (choice "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Nightlife" "Family Friendly" "Leisure") (slotName "visitPreference") (questionType "RADIO")))
+)
+
+;;if leisure chosen previous qn, fire this
+(defrule fireLeisureQuestion
+?desired <- (desired (leisure "NULL"))
+=>
+(assert (ask (question "What would you like to do for leisure?") (choice "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining") (slotName "leisure") (questionType "CHECKBOX")))
 )
 
 (defrule fireActivityTypeQuestion
