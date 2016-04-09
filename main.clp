@@ -106,6 +106,28 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; QUESTION FIRING
+
+(defglobal ?*userBudget* = 0)
+
+(defrule fireBudgetQuestion
+?desired <- (desired (budget 0))
+=>
+(assert (ask (question "What is your preferred budget? (if $5000.00, please enter 5000) ") (slotName "budget") (questionType "TEXTBOX")))
+)
+
+(defrule fireDaysReqQuestion
+?desired <- (desired (daysReq 0))
+=>
+(assert (ask (question "How many days are you planning to spend in the destination? (if 5 days, please enter 5)") (slotName "daysReq") (questionType "TEXTBOX")))
+)
+
+(defrule calculateExpense
+(destination (budget ?budget))
+(desired (daysReq ?daysReq))
+=>
+(bind ?*userBudget*(* ?budget ?daysReq))
+)
+
 (defrule fireWeatherQuestion
 ?desired <- (desired (weather "NULL"))
 =>
