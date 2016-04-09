@@ -11,7 +11,7 @@
 	(slot question (type STRING))
 	(multislot choice (type STRING))
 	(slot slotName (type STRING))
-    (slot questionType (type STRING) (allowed-strings "RADIO" "CHECKBOX") (default "RADIO"))
+    (slot questionType (type STRING) (allowed-strings "RADIO" "CHECKBOX" "TEXTBOX") (default "RADIO"))
 )
 
 ;; no pyclips
