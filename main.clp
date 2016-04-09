@@ -1,3 +1,8 @@
+;; @Gary i need u to insert an assert at the end of each question
+;; like this (assert (checkweather on))
+;; as well as other asserts for the other questions
+;; this will fire the various destination filters
+
 ;;question refers to the question to be asked
 ;; choice refers to the choices available to the user
 ;;slotName refers to the actual slot name in the desired template
@@ -6,8 +11,16 @@
 	(slot question (type STRING))
 	(multislot choice (type STRING))
 	(slot slotName (type STRING))
-  (slot questionType (type STRING) (allowed-strings "RADIO" "CHECKBOX") (default "RADIO"))
-	)
+    (slot questionType (type STRING) (allowed-strings "RADIO" "CHECKBOX") (default "RADIO"))
+)
+
+;; no pyclips
+;;(deftemplate filter
+;;	(slot status (type STRING) (default "Off") (allowed-strings ;;"Off" "On"))
+;;	(slot targetSlot (type SYMBOL) (default NULL) (allowed-symbols ;;NULL englishSpeaking visitPreference region geography leisure ;;daysReq budget activityType waterActivity outdoorActivity weather))
+;;	(slot slotType (type STRING) (default "regular") (allowed-
+;;strings "regular" "multi"))
+;;)
 
 
 ; ; In destination, NULL is not allowed except in
@@ -23,9 +36,9 @@
 	(multislot leisure (type STRING)(allowed-strings "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
 	(slot daysReq (type INTEGER))
 	(slot budget (type INTEGER))
-	(multislot activityType (type STRING)(allowed-strings "Water" "Outdoor"))
-	(multislot waterActivity (type STRING)(allowed-strings "NULL" "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
-	(multislot outdoorActivity (type STRING)(allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
+	(multislot activityType (type STRING) (allowed-strings "Water" "Outdoor"))
+	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
+	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
 	(slot weather (type STRING) (allowed-strings "Hot" "Warm" "Mild" "Cold" "Frozen"))
 )
 
@@ -44,16 +57,64 @@
 	(slot budget (type INTEGER))
 	(multislot activityType (type STRING) (default "NULL") (allowed-strings "NULL" "Water" "Outdoor"))
 	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
-	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
+	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
 	(slot weather (type STRING) (allowed-strings "NULL" "Hot" "Warm" "Mild" "Cold" "Frozen"))
 )
 
 ; ; The initial facts
 (deffacts the-facts
 	(destination (name "Ha Long Bay") (englishSpeaking "No") (visitPreference "Off the Beaten Path" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Mountains" "Forest") (leisure "Casino" "Landmarks") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba") (outdoorActivity "Hiking") (weather "Warm"))
+	
+	(destination (name "Hong Kong") (englishSpeaking "Yes") (visitPreference "Nightlife" "Family Friendly" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Museum" "Dining") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Park" "Dolphin Encounter") (outdoorActivity "Skiing") (weather "Warm"))
+
+	(destination (name "Maldives") (englishSpeaking "Yes") (visitPreference "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Island") (leisure "Spa" "Landmarks" "Zoo") (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Skiing" "Wind Surfing" "Dolphin Encounter") (outdoorActivity "Mountain Biking" "Rock Climbing") (weather "Warm"))
+
+	(destination (name "Bangkok") (englishSpeaking "No") (visitPreference "Local Culture" "Nightlife" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Spa" "Shopping" "Theme Park" "Museum" "Dining") (activityType "Outdoor") (outdoorActivity "Zipline") (weather "Hot"))
+
 	(desired)
+	;;(filter)
 )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; FIRING FILTERS (normal slot)
+(defrule fireWeatherFilter
+(checkweather on)
+?desired <- (desired (weather ?desiredW))
+?destination <- (destination (weather ?destW))
+=>
+(if (= (str-compare ?desiredW ?destW) 0)
+	then
+	else
+	(retract ?destination)
+)
+)
+
+(defrule fireEnglishFilter
+(checkenglish on)
+?desired <- (desired (englishSpeaking ?desiredE))
+?destination <- (destination (englishSpeaking ?destE))
+=>
+(if (= (str-compare ?desiredE ?destE) 0)
+	then
+	else
+	(retract ?destination)
+)
+)
+
+(defrule fireRegionFilter
+(checkregion on)
+?desired <- (desired (region ?desiredR))
+?destination <- (destination (region ?destR))
+=>
+(if (= (str-compare ?desiredR ?destR) 0)
+	then
+	else
+	(retract ?destination)
+)
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; QUESTION FIRING
 (defrule fireWeatherQuestion
 ?desired <- (desired (weather "NULL"))
 =>
@@ -89,15 +150,3 @@
 =>
 (assert (ask (question "What kind of outdoor activities do you wish to take part in?") (choice "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding") (slotName "outdoorActivity") (questionType "CHECKBOX")))
 )
-
-
-
-
-;;	(destination (name __) (englishSpeaking __) (visitPreference __) (region __) (geography __) (leisure __) (activityType __) (waterActivity __) (outdoorActivity __) (weather __))
-;;	(destination (name __) (englishSpeaking __) (visitPreference __) (region __) (geography __) (leisure __) (activityType __) (waterActivity __) (outdoorActivity __) (weather __))
-;;	(destination (name __) (englishSpeaking __) (visitPreference __) (region __) (geography __) (leisure __) (activityType __) (waterActivity __) (outdoorActivity __) (weather __))
-;;	(destination (name __) (englishSpeaking __) (visitPreference __) (region __) (geography __) (leisure __) (activityType __) (waterActivity __) (outdoorActivity __) (weather __))
-;;	(destination (name __) (englishSpeaking __) (visitPreference __) (region __) (geography __) (leisure __) (activityType __) (waterActivity __) (outdoorActivity __) (weather __))
-
-
-;;) 
