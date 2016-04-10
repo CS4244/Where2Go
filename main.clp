@@ -120,6 +120,7 @@
       (if(< ?budgetDesired (* ?daysReq ?f:budget))
       then
       (retract ?f)
+      (bind ?*totalDestination* (- ?*totalDestination* 1))
       else)
       )
 )
