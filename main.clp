@@ -34,8 +34,8 @@
 	(slot region (type STRING)(allowed-strings "North America" "Europe" "Other"))
 	(multislot geography (type STRING)(allowed-strings "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island"))
 	(multislot leisure (type STRING)(allowed-strings "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
-	(slot daysReq (type INTEGER))
-	(slot budget (type INTEGER))
+	(slot daysReq (type INTEGER) (default -1))
+	(slot budget (type INTEGER) (default -1))
 	(multislot activityType (type STRING) (allowed-strings "Water" "Outdoor"))
 	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
@@ -110,6 +110,19 @@
 (bind ?*totalDestination* (- ?*totalDestination* 1))
 )
 
+(defrule fireBudgetFilter
+(desired (budget ?budgetDesired))
+(desired (daysReq ?daysReq))
+(test (> ?daysReq -1))
+(test (> ?daysReq -1))
+=>
+(do-for-all-facts ((?f destination)) TRUE
+      (if(< ?budgetDesired (* ?daysReq ?f:budget))
+      then
+      (retract ?f)
+      else)
+      )
+)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; QUESTION FIRING
 
@@ -207,3 +220,4 @@
 =>
 (do-for-all-facts ((?f ask)) TRUE (retract ?f))
 )
+
