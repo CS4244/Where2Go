@@ -9,7 +9,7 @@
 ;;For questionType, radio implies question accepts only one answer and checkbox accepts multiple answers. 
 (deftemplate ask
 	(slot question (type STRING))
-	(multislot choice (type STRING))
+	(multislot choice (type STRING)(default "NULL"))
 	(slot slotName (type STRING))
     (slot questionType (type STRING) (allowed-strings "RADIO" "CHECKBOX" "TEXTBOX") (default "RADIO"))
 )
@@ -34,8 +34,8 @@
 	(slot region (type STRING)(allowed-strings "North America" "Europe" "Other"))
 	(multislot geography (type STRING)(allowed-strings "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island"))
 	(multislot leisure (type STRING)(allowed-strings "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
-	(slot daysReq (type INTEGER))
-	(slot budget (type INTEGER))
+	(slot daysReq (type INTEGER) (default -1))
+	(slot budget (type INTEGER) (default -1))
 	(multislot activityType (type STRING) (allowed-strings "Water" "Outdoor"))
 	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
@@ -112,18 +112,20 @@
 (defrule fireBudgetQuestion
 ?desired <- (desired (budget 0))
 =>
-(assert (ask (question "What is your preferred budget? (if $5000.00, please enter 5000) ") (slotName "budget") (questionType "TEXTBOX")))
+(assert (ask (question "What is your preferred budget? (If $5000.00, please enter 5000) ") (slotName "budget") (questionType "TEXTBOX")))
 )
 
 (defrule fireDaysReqQuestion
 ?desired <- (desired (daysReq 0))
 =>
-(assert (ask (question "How many days are you planning to spend in the destination? (if 5 days, please enter 5)") (slotName "daysReq") (questionType "TEXTBOX")))
+(assert (ask (question "How many days are you planning to spend in the destination? If 5 days, please enter 5") (slotName "daysReq") (questionType "TEXTBOX")))
 )
 
 (defrule calculateExpense
-(destination (budget ?budget))
+(desired (budget ?budget))
 (desired (daysReq ?daysReq))
+(> ?daysReqs -1)
+(> ?budget -1)
 =>
 (bind ?*userBudget*(* ?budget ?daysReq))
 )
