@@ -34,8 +34,8 @@
 	(slot region (type STRING)(allowed-strings "North America" "Europe" "Other"))
 	(multislot geography (type STRING)(allowed-strings "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island"))
 	(multislot leisure (type STRING)(allowed-strings "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
-	(slot daysReq (type INTEGER) (default -1))
-	(slot budget (type INTEGER) (default -1))
+	(slot daysReq (type INTEGER))
+	(slot budget (type INTEGER))
 	(multislot activityType (type STRING) (allowed-strings "Water" "Outdoor"))
 	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
@@ -53,8 +53,8 @@
 	(slot region (type STRING)(allowed-strings "NULL" "North America" "Europe" "Other"))
 	(multislot geography (type STRING) (default "NULL") (allowed-strings "NULL" "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island"))
 	(multislot leisure (type STRING) (default "NULL") (allowed-strings "NULL" "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
-	(slot daysReq (type INTEGER))
-	(slot budget (type INTEGER))
+	(slot daysReq (type INTEGER) (default -1))
+	(slot budget (type INTEGER) (default -1))
 	(multislot activityType (type STRING) (default "NULL") (allowed-strings "NULL" "Water" "Outdoor"))
 	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
@@ -70,11 +70,14 @@
 	(destination (name "Maldives") (englishSpeaking "Yes") (visitPreference "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Island") (leisure "Spa" "Landmarks" "Zoo") (budget 540) (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Skiing" "Wind Surfing" "Dolphin Encounter") (outdoorActivity "Mountain Biking" "Rock Climbing") (weather "Warm"))
 
 	(destination (name "Bangkok") (englishSpeaking "No") (visitPreference "Local Culture" "Nightlife" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Spa" "Shopping" "Theme Park" "Museum" "Dining") (budget 100) (activityType "Outdoor") (outdoorActivity "Zipline") (weather "Hot"))
-
+  (count destination undone)
 	(desired)
 	;;(filter)
 )
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;GLOBALS
+(defglobal ?*totalDestination* = 0)
+(defglobal ?*userBudget* = 0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FIRING FILTERS (normal slot)
 (defrule fireWeatherFilter
@@ -84,6 +87,7 @@
 (test (neq ?desiredW ?destW) )
 =>
 	(retract ?destination)
+  (bind ?*totalDestination* (- ?*totalDestination* 1))
 )
 
 (defrule fireEnglishFilter
@@ -93,6 +97,7 @@
 (test (neq ?desiredE ?destE) )
 =>
 	(retract ?destination)
+  (bind ?*totalDestination* (- ?*totalDestination* 1))
 )
 
 (defrule fireRegionFilter
@@ -102,21 +107,20 @@
 (test (neq ?desiredR ?destR) )
 =>
 (retract ?destination)
+(bind ?*totalDestination* (- ?*totalDestination* 1))
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; QUESTION FIRING
 
-(defglobal ?*userBudget* = 0)
-
 (defrule fireBudgetQuestion
-?desired <- (desired (budget 0))
+?desired <- (desired (budget -1))
 =>
 (assert (ask (question "What is your preferred budget? (If $5000.00, please enter 5000) ") (slotName "budget") (questionType "TEXTBOX")))
 )
 
 (defrule fireDaysReqQuestion
-?desired <- (desired (daysReq 0))
+?desired <- (desired (daysReq -1))
 =>
 (assert (ask (question "How many days are you planning to spend in the destination? If 5 days, please enter 5") (slotName "daysReq") (questionType "TEXTBOX")))
 )
@@ -124,10 +128,10 @@
 (defrule calculateExpense
 (desired (budget ?budget))
 (desired (daysReq ?daysReq))
-(> ?daysReqs -1)
-(> ?budget -1)
+(test (> ?daysReq -1))
+(test (> ?budget -1))
 =>
-(bind ?*userBudget*(* ?budget ?daysReq))
+(bind ?*userBudget* (* ?budget ?daysReq))
 )
 
 (defrule fireGeographyQuestion
@@ -162,6 +166,7 @@
 
 ;;if leisure chosen previous qn, fire this
 (defrule fireLeisureQuestion
+(desired (visitPreference "Leisure"))
 ?desired <- (desired (leisure "NULL"))
 =>
 (assert (ask (question "What would you like to do for leisure?") (choice "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining") (slotName "leisure") (questionType "CHECKBOX")))
@@ -183,4 +188,22 @@
 ?desired <- (desired (activityType $?x "Outdoor" $?y) (outdoorActivity "NULL"))
 =>
 (assert (ask (question "What kind of outdoor activities do you wish to take part in?") (choice "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding") (slotName "outdoorActivity") (questionType "CHECKBOX")))
+)
+
+(defrule countAllDestinationsOnce
+?undone<-(count destination undone)
+(exists (destination))
+=>
+(retract ?undone)
+(do-for-all-facts ((?f destination)) TRUE
+      (bind ?*totalDestination* (+ ?*totalDestination* 1)))
+(assert (count destination done))
+)
+
+(defrule retractAskFactIfLeftOneDestination
+(count destination done)
+(test (< ?*totalDestination* 2))
+(exists (ask))
+=>
+(do-for-all-facts ((?f ask)) TRUE (retract ?f))
 )
