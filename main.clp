@@ -17,7 +17,7 @@
 ;; no pyclips
 ;;(deftemplate filter
 ;;	(slot status (type STRING) (default "Off") (allowed-strings ;;"Off" "On"))
-;;	(slot targetSlot (type SYMBOL) (default NULL) (allowed-symbols ;;NULL englishSpeaking visitPreference region geography leisure ;;daysReq budget activityType waterActivity outdoorActivity weather))
+;;	(slot targetSlot (type SYMBOL) (default NULL) (allowed-symbols ;;NULL englishSpeaking visitPreference region geography leisure ;;daysReq avgHotel activityType waterActivity outdoorActivity weather))
 ;;	(slot slotType (type STRING) (default "regular") (allowed-
 ;;strings "regular" "multi"))
 ;;)
@@ -29,17 +29,17 @@
 ; ; has a lack of water/outdoor activity
 (deftemplate destination
 	(slot name (type STRING))
-	(slot englishSpeaking (type STRING) (default "No")(allowed-strings "Yes" "No"))
-	(multislot visitPreference (type STRING)(allowed-strings "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Nightlife" "Family Friendly" "Leisure"))
-	(slot region (type STRING)(allowed-strings "North America" "Europe" "Other"))
-	(multislot geography (type STRING)(allowed-strings "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island"))
-	(multislot leisure (type STRING)(allowed-strings "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
-	(slot daysReq (type INTEGER) (default -1))
-	(slot budget (type INTEGER) (default -1))
-	(multislot activityType (type STRING) (allowed-strings "Water" "Outdoor"))
-	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
-	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
-	(slot weather (type STRING) (allowed-strings "Hot" "Warm" "Mild" "Cold" "Frozen"))
+	(slot englishSpeaking (type STRING) (default "No")(allowed-strings "NULL" "Yes" "No"))
+	(multislot visitPreference (type STRING)(allowed-strings "NULL" "Undiscovered" "Romantic" "Peace and Quiet" "Cultural" "Nightlife" "Family Friendly" "Leisure"))
+	(slot region (type STRING)(allowed-strings "NULL" "North America" "Europe" "Other"))
+	(multislot geography (type STRING)(allowed-strings "NULL" "Beach" "City" "Volcano" "Seaside" "Mountains" "Wilderness" "Island"))
+	(multislot leisure (type STRING)(allowed-strings "NULL" "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
+	(slot daysReq (type INTEGER))
+	(slot avgHotel (type INTEGER))
+	(multislot activityType (type STRING)(allowed-strings  "NULL" "Water" "Outdoor"))
+	(multislot waterActivity (type STRING)(allowed-strings "NULL" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
+	(multislot outdoorActivity (type STRING)(allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
+	(slot weather (type STRING) (allowed-strings "NULL" "Hot" "Warm" "Mild" "Cold"))
 )
 
 
@@ -49,27 +49,23 @@
 (deftemplate desired
 	; ;(slot name (type STRING))
 	(slot englishSpeaking (type STRING) (default "NULL")(allowed-strings "NULL" "Yes" "No"))
-	(multislot visitPreference (type STRING) (default "NULL") (allowed-strings "NULL" "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Nightlife" "Family Friendly" "Leisure"))
+	(multislot visitPreference (type STRING) (default "NULL") (allowed-strings "NULL" "Undiscovered" "Romantic" "Peace and Quiet" "Cultural" "Nightlife" "Family Friendly" "Leisure"))
 	(slot region (type STRING)(allowed-strings "NULL" "North America" "Europe" "Other"))
-	(multislot geography (type STRING) (default "NULL") (allowed-strings "NULL" "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island"))
+	(multislot geography (type STRING) (default "NULL") (allowed-strings "NULL" "Beach" "City" "Volcano" "Seaside" "Mountains" "Wilderness" "Island"))
 	(multislot leisure (type STRING) (default "NULL") (allowed-strings "NULL" "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
+    (slot budget (type INTEGER) (default -1))
 	(slot daysReq (type INTEGER) (default -1))
-	(slot budget (type INTEGER) (default -1))
 	(multislot activityType (type STRING) (default "NULL") (allowed-strings "NULL" "Water" "Outdoor"))
 	(multislot waterActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
-	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Skiing" "Zipline" "Horseback Riding"))
-	(slot weather (type STRING) (allowed-strings "NULL" "Hot" "Warm" "Mild" "Cold" "Frozen"))
+	(multislot outdoorActivity (type STRING) (default "NULL") (allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
+	(slot weather (type STRING) (allowed-strings "NULL" "Hot" "Warm" "Mild" "Cold"))
 )
+
 
 ; ; The initial facts
 (deffacts the-facts
-	(destination (name "Ha Long Bay") (englishSpeaking "No") (visitPreference "Off the Beaten Path" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Mountains" "Forest") (leisure "Casino" "Landmarks") (budget 100)(activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba") (outdoorActivity "Hiking") (weather "Warm"))
-	
-	(destination (name "Hong Kong") (englishSpeaking "Yes") (visitPreference "Nightlife" "Family Friendly" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Museum" "Dining") (budget 170) (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Park" "Dolphin Encounter") (outdoorActivity "Skiing") (weather "Warm"))
+		(destination (name "Abu Dhabi")(englishSpeaking "No")(visitPreference "Undiscovered" "Romantic" "Peace and Quiet" "Family Friendly")(region "Other")(geography "Beach" "City" "Seaside" "Mountains" "Island")(leisure "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining")(daysReq 0)(avgHotel 219)(activityType "Water" "Outdoor")(waterActivity "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter")(outdoorActivity "Mountain Biking" "Horseback Riding")(weather "Warm"))
 
-	(destination (name "Maldives") (englishSpeaking "Yes") (visitPreference "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Leisure") (region "Other") (geography "Beach" "Island") (leisure "Spa" "Landmarks" "Zoo") (budget 540) (activityType "Water" "Outdoor") (waterActivity "Surfing" "Scuba" "Water Skiing" "Wind Surfing" "Dolphin Encounter") (outdoorActivity "Mountain Biking" "Rock Climbing") (weather "Warm"))
-
-	(destination (name "Bangkok") (englishSpeaking "No") (visitPreference "Local Culture" "Nightlife" "Leisure") (region "Other") (geography "City" "Coastal") (leisure "Spa" "Shopping" "Theme Park" "Museum" "Dining") (budget 100) (activityType "Outdoor") (outdoorActivity "Zipline") (weather "Hot"))
   (count destination undone)
 	(desired)
 	;;(filter)
@@ -117,7 +113,7 @@
 (test (> ?daysReq -1))
 =>
 (do-for-all-facts ((?f destination)) TRUE
-      (if(< ?budgetDesired (* ?daysReq ?f:budget))
+      (if(< ?budgetDesired (* ?daysReq ?f:avgHotel))
       then
       (retract ?f)
       (bind ?*totalDestination* (- ?*totalDestination* 1))
@@ -151,7 +147,7 @@
 (defrule fireGeographyQuestion
 ?desired <- (desired (geography "NULL"))
 =>
-(assert (ask (question "What is your geographic preference?") (choice "Beach" "City" "Volcano" "Coastal" "Mountains" "Forest" "Island") (slotName "geography") (questionType "RADIO")))
+(assert (ask (question "What is your geographic preference?") (choice "Beach" "City" "Volcano" "Seaside" "Mountains" "Wilderness" "Island") (slotName "geography") (questionType "RADIO")))
 )
 
 (defrule fireWeatherQuestion
@@ -175,7 +171,7 @@
 (defrule fireVisitPreferenceQuestion
 ?desired <- (desired (visitPreference "NULL"))
 =>
-(assert (ask (question "Any visit preference?") (choice "Off the Beaten Path" "Romantic" "Peace and Quiet" "Local Culture" "Nightlife" "Family Friendly" "Leisure") (slotName "visitPreference") (questionType "RADIO")))
+(assert (ask (question "Any visit preference?") (choice "Undiscovered" "Romantic" "Peace and Quiet" "Cultural" "Nightlife" "Family Friendly" "Leisure") (slotName "visitPreference") (questionType "RADIO")))
 )
 
 ;;if leisure chosen previous qn, fire this
