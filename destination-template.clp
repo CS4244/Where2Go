@@ -5,7 +5,6 @@
 	(slot region (type STRING)(allowed-strings "NULL" "North America" "Europe" "Other"))
 	(multislot geography (type STRING)(allowed-strings "NULL" "Beach" "City" "Volcano" "Seaside" "Mountains" "Wilderness" "Island"))
 	(multislot leisure (type STRING)(allowed-strings "NULL" "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
-	(slot budget (type INTEGER) (default -1))
 	(slot daysReq (type INTEGER))
 	(slot avgHotel (type INTEGER))
 	(multislot activityType (type STRING)(allowed-strings  "NULL" "Water" "Outdoor"))
