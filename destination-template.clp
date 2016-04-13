@@ -1,7 +1,7 @@
 (deftemplate destination
 	(slot name (type STRING))
 	(slot englishSpeaking (type STRING) (default "No")(allowed-strings "NULL" "Yes" "No"))
-	(multislot visitPreference (type STRING)(allowed-strings "NULL" "Undiscovered" "Romantic" "Peace and Quiet" "Cultural" "Nightlife" "Family Friendly" "Leisure"))
+	(multislot visitPreference (type STRING)(allowed-strings "NULL" "Undiscovered" "Romantic" "Peace and Quiet" "Cultural" "NightLife" "Family Friendly" "Leisure"))
 	(slot region (type STRING)(allowed-strings "NULL" "North America" "Europe" "Other"))
 	(multislot geography (type STRING)(allowed-strings "NULL" "Beach" "City" "Volcano" "Seaside" "Mountains" "Wilderness" "Island"))
 	(multislot leisure (type STRING)(allowed-strings "NULL" "Casino" "Spa" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining"))
