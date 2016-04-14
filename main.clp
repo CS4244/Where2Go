@@ -346,6 +346,7 @@
 ;;GLOBALS
 (defglobal ?*totalDestination* = 0)
 (defglobal ?*userBudget* = 0)
+(defglobal ?*status* = running)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FIRING FILTERS (normal slot)
 (defrule fireWeatherFilter
@@ -501,4 +502,14 @@
 ?ask<-(ask)
 =>
 (retract ?ask)
+)
+
+
+;; if no of facts more than 1 and no qns,then status =terminate
+
+(defrule reportStatus
+(not(exists (ask)))
+(test (> ?*totalDestination* 1))
+=>
+(bind ?*status* terminated)
 )
