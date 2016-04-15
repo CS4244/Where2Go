@@ -40,6 +40,7 @@
 	(multislot waterActivity (type STRING)(allowed-strings "NULL" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING)(allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
 	(slot weather (type STRING) (allowed-strings "NULL" "Hot" "Warm" "Mild" "Cold"))
+	(slot expenditure (type INTEGER))
 )
 
 
@@ -63,6 +64,11 @@
 
 (deftemplate destinationCount
 	(slot count (type INTEGER) (default 0))
+)
+
+(deftemplate reportDest
+(slot currStatus (type STRING) (default "running"))
+(slot finalDest (type STRING) (default "NULL"))
 )
 
 ; ; The initial facts
@@ -346,60 +352,64 @@
 ;;GLOBALS
 (defglobal ?*totalDestination* = 0)
 (defglobal ?*userBudget* = 0)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;FUNCTION
+(deffunction countAllDestinations()
+  return (length$ (find-all-facts ((?f destination)) TRUE))
+)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FIRING FILTERS (normal slot)
 (defrule fireWeatherFilter
 (checkweather on)
 ?desired <- (desired (weather ?desiredW))
-?destination <- (destination (weather ?destW))
-?destinationCount <- (destinationCount (count ?count))
-(test (neq ?desiredW ?destW) )
 =>
-(retract ?destination)
-(bind ?*totalDestination* (- ?*totalDestination* 1))
-(modify ?destinationCount (count (- ?count 1)))
+(do-for-all-facts ((?f destination)) (neq ?f:weather ?desiredW)
+                        (retract ?f))
+
+(bind ?*totalDestination* (countAllDestinations))
 )
 
 (defrule fireEnglishFilter
 (checkenglishSpeaking on)
 ?desired <- (desired (englishSpeaking ?desiredE))
-?destination <- (destination (englishSpeaking ?destE))
-?destinationCount <- (destinationCount (count ?count))
-(test (neq ?desiredE ?destE) )
 =>
-	(retract ?destination)
-(modify ?destinationCount (count (- ?count 1)))
-  (bind ?*totalDestination* (- ?*totalDestination* 1))
+(do-for-all-facts ((?f destination)) (neq ?f:englishSpeaking ?desiredE)
+                        (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))
 )
 
 (defrule fireRegionFilter
 (checkregion on)
 ?desired <- (desired (region ?desiredR))
-?destination <- (destination (region ?destR))
-?destinationCount <- (destinationCount (count ?count))
-(test (neq ?desiredR ?destR) )
 =>
-(retract ?destination)
-(modify ?destinationCount (count (- ?count 1)))
-(bind ?*totalDestination* (- ?*totalDestination* 1))
+(do-for-all-facts ((?f destination)) (neq ?f:region ?desiredR)
+                        (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))
 )
 
 (defrule fireBudgetFilter
-(desired (budget ?budgetDesired))
-(desired (daysReq ?daysReq))
-?destination<-(destination (avgHotel ?avghotel))
-?destinationCount <- (destinationCount (count ?count))
+(checkbudget on)
+(checkdaysReq on)
+(desired (daysReq ?daysReq) (budget ?budgetDesired))
 (test (> ?daysReq -1))
 =>
+(do-for-all-facts ((?f destination)) (< ?budgetDesired (* ?f:avgHotel ?daysReq))
+                        (retract ?f))
 
-      (if(< ?budgetDesired (* ?daysReq ?avghotel))
-      then
-      (retract ?destination)
-      (bind ?*totalDestination* (- ?*totalDestination* 1))
-      else)
-            (bind ?count ?*totalDestination*)
- (modify ?destinationCount (count ?count))
+(bind ?*totalDestination* (countAllDestinations))
 )
+
+(defrule fireGeographyFilter
+(checkgeography on)
+?desired <- (desired (geography ?desiredR))
+=>
+(do-for-all-facts ((?f destination)) (neq ?f:region ?desiredR)
+                        (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))
+)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; QUESTION FIRING
 
@@ -418,10 +428,13 @@
 (defrule calculateExpense
 (desired (budget ?budget))
 (desired (daysReq ?daysReq))
+(destination (expenditure ?expenditure))
 (test (> ?daysReq -1))
 (test (> ?budget -1))
 =>
-(bind ?*userBudget* (* ?budget ?daysReq))
+(do-for-all-facts ((?f destination)) TRUE
+                        (modify ?f:expenditure  (* ?budget ?daysReq)))
+(bind ?*totalDestination* (countAllDestinations))
 )
 
 (defrule fireGeographyQuestion
@@ -483,22 +496,42 @@
 (defrule countAllDestinationsOnce
 (declare (salience 50))
 ?undone<-(count destination undone)
-?destinationCount <- (destinationCount (count ?count))
 (exists (destination))
 =>
 (retract ?undone)
-(do-for-all-facts ((?f destination)) TRUE
-      (bind ?*totalDestination* (+ ?*totalDestination* 1)))
- (bind ?count ?*totalDestination*)
- (modify ?destinationCount (count ?count))
+
+ (bind ?*totalDestination* (countAllDestinations))
 (assert (count destination done))
 )
 
-(defrule retractAskFactIfLeftOneDestination
-(count destination done)
-?destinationCount <- (destinationCount (count ?count))
-(test (< ?count 2))
-?ask<-(ask)
+
+;; if no qns left and destination  = 1
+(defrule reportFinalDest
+(not(exists (ask)))
+(destination (name ?name)(expenditure ?expenditure))
+(reportDest (currStatus ?currStatus) (finalDest ?finalDest))
+(test (= ?*totalDestination* 1))
 =>
-(retract ?ask)
+(bind ?currStatus terminated)
+(bind ?finalDest ?name)
+)
+
+;; if no qns left and destination  = 0, status = fail
+(defrule reportNoDest
+(not(exists (ask)))
+(test (= ?*totalDestination* 0))
+=>
+(bind ?currStatus fail)
+)
+
+;; if num of facts more than 1 and no qns,then status =terminate and choose max budget
+(defrule chooseOneDestination
+(not (exists (ask)))
+(test(> ?*totalDestination* 1))
+(reportDest (currStatus ?currStatus) (finalDest ?finalDest))
+(destination (name ?name) (expenditure ?expenditure1))
+(not (destination (expenditure ?expenditure2&:(> ?expenditure2 ?expenditure1))))
+=>
+(bind ?currStatus terminated)
+(bind ?finalDest ?name)
 )
