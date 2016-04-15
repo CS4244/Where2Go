@@ -401,11 +401,58 @@
 (bind ?*totalDestination* (countAllDestinations))
 )
 
+(defrule fireZeroBudgetFilter
+(declare (salience 50))
+(desired (budget ?budgetDesired))
+(test  (= ?budgetDesired 0) )
+=>
+(do-for-all-facts ((?f destination)) TRUE
+      (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))      
+)
+
+(defrule fireZeroDaysReqFilter
+(declare (salience 50))
+(desired (daysReq ?daysReq))
+(test (= ?daysReq 0))
+=>
+(do-for-all-facts ((?f destination)) TRUE
+      (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))
+)
+
 (defrule fireGeographyFilter
 (checkgeography on)
-?desired <- (desired (geography ?desiredR))
+?desired <- (desired (geography $?desiredR))
 =>
-(do-for-all-facts ((?f destination)) (neq ?f:region ?desiredR)
+(do-for-all-facts ((?f destination))  (not(subsetp $?desiredR $?f:geography))
+                        (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))
+)
+
+(defrule fireWaterActivityFilter
+(checkwaterActivity on)
+?desired <- (desired (waterActivity $?desiredR))
+=>
+(do-for-all-facts ((?f destination))  (not(subsetp $?desiredR $?f:waterActivity))
+                        (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))
+)
+
+(defrule fireOutdoorActivityFilter
+(checkoutdoorActivity on)
+?desired <- (desired (outdoorActivity $?desiredR))
+=>
+(do-for-all-facts ((?f destination))  (not(subsetp $?desiredR $?f:outdoorActivity))
+                        (retract ?f))
+(bind ?*totalDestination* (countAllDestinations))
+)
+
+(defrule fireVisitPreferenceFilter
+(checkvisitPreference on)
+?desired <- (desired (visitPreference $?desiredR))
+=>
+(do-for-all-facts ((?f destination))  (not(subsetp $?desiredR $?f:visitPreference))
                         (retract ?f))
 (bind ?*totalDestination* (countAllDestinations))
 )
@@ -425,17 +472,7 @@
 (assert (ask (question "How many days are you planning to spend in the destination? If 5 days, please enter 5") (slotName "daysReq") (questionType "TEXTBOX")))
 )
 
-(defrule calculateExpense
-(desired (budget ?budget))
-(desired (daysReq ?daysReq))
-(destination (expenditure ?expenditure))
-(test (> ?daysReq -1))
-(test (> ?budget -1))
-=>
-(do-for-all-facts ((?f destination)) TRUE
-                        (modify ?f:expenditure  (* ?budget ?daysReq)))
-(bind ?*totalDestination* (countAllDestinations))
-)
+
 
 (defrule fireGeographyQuestion
 ?desired <- (desired (geography "NULL"))
