@@ -513,15 +513,23 @@
 )
 
 
-;; if no qns left, but destinations below 2, i.e. 0 or 1
+;; if no qns left and destination  = 1
 (defrule reportFinalDest
 (not(exists (ask)))
 (destination (name ?name)(expenditure ?expenditure))
 (reportDest (currStatus ?currStatus) (finalDest ?finalDest))
-(test (< ?*totalDestination* 2))
+(test (= ?*totalDestination* 1))
 =>
 (bind ?currStatus terminated)
 (bind ?finalDest ?name)
+)
+
+;; if no qns left and destination  = 0, status = fail
+(defrule reportNoDest
+(not(exists (ask)))
+(test (= ?*totalDestination* 1))
+=>
+(bind ?currStatus fail)
 )
 
 ;; if num of facts more than 1 and no qns,then status =terminate and choose max budget
