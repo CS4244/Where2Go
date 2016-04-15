@@ -356,12 +356,10 @@
 (declare (salience 540))
 (checkweather on)
 ?desired <- (desired (weather ?desiredW))
-?destinationCount <- (destinationCount (count ?count))
 =>
 (do-for-all-facts ((?f destination)) (neq ?f:weather ?desiredW)
                     (retract ?f))
 (bind ?*totalDestination* (countAllDestinations))
-(modify ?destinationCount (count ?*totalDestination*))
 )
 
 
@@ -369,11 +367,9 @@
 (checkenglishSpeaking on)
 ?desired <- (desired (englishSpeaking ?desiredE))
 ?destination <- (destination (englishSpeaking ?destE))
-?destinationCount <- (destinationCount (count ?count))
 (test (neq ?desiredE ?destE) )
 =>
 	(retract ?destination)
-(modify ?destinationCount (count (- ?count 1)))
   (bind ?*totalDestination* (- ?*totalDestination* 1))
 )
 
@@ -381,18 +377,15 @@
 (checkregion on)
 ?desired <- (desired (region ?desiredR))
 ?destination <- (destination (region ?destR))
-?destinationCount <- (destinationCount (count ?count))
 (test (neq ?desiredR ?destR) )
 =>
 (retract ?destination)
-(modify ?destinationCount (count (- ?count 1)))
 (bind ?*totalDestination* (- ?*totalDestination* 1))
 )
 
 (defrule fireBudgetFilter
 (desired (budget ?budgetDesired))
 (desired (daysReq ?daysReq))
-?destinationCount <- (destinationCount (count ?count))
 (test (> ?daysReq -1))
 (test (> ?budgetDesired -1))
 =>
@@ -406,7 +399,6 @@
       else)
       )
                   (bind ?count (- ?count ?toMinus))
- (modify ?destinationCount (count ?count))
  (halt)
 )
 
@@ -414,14 +406,12 @@
 (declare (salience 50))
 (desired (budget ?budgetDesired))
 (test  (= ?budgetDesired 0) )
-?destinationCount <- (destinationCount (count ?count))
 =>
 (bind ?toMinus 0)
 (do-for-all-facts ((?f destination)) TRUE
        (bind ?toMinus (+ ?toMinus 1))
       (retract ?f))
       (bind ?count (- ?count ?toMinus))
-       (modify ?destinationCount (count ?count))
        (halt)
 )
 
@@ -429,13 +419,11 @@
 (declare (salience 50))
 (desired (daysReq ?daysReq))
 (test (= ?daysReq 0))
-?destinationCount <- (destinationCount (count ?count))
 =>
 (do-for-all-facts ((?f destination)) TRUE
              (bind ?toMinus (+ ?toMinus 1))
       (retract ?f))
       (bind ?count (- ?count ?toMinus))
-       (modify ?destinationCount (count ?count))
        (halt)
 )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -532,14 +520,12 @@
 (defrule countAllDestinationsOnce
 (declare (salience 50))
 ?undone<-(count destination undone)
-?destinationCount <- (destinationCount (count ?count))
 (exists (destination))
 =>
 (retract ?undone)
 (do-for-all-facts ((?f destination)) TRUE
       (bind ?*totalDestination* (+ ?*totalDestination* 1)))
  (bind ?count ?*totalDestination*)
- (modify ?destinationCount (count ?count))
 (assert (count destination done))
 )
 

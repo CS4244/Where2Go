@@ -40,6 +40,7 @@
 	(multislot waterActivity (type STRING)(allowed-strings "NULL" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING)(allowed-strings "NULL" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
 	(slot weather (type STRING) (allowed-strings "NULL" "Hot" "Warm" "Mild" "Cold"))
+	(slot expenditure (type INTEGER))
 )
 
 
@@ -63,6 +64,11 @@
 
 (deftemplate destinationCount
 	(slot count (type INTEGER) (default 0))
+)
+
+(deftemplate reportDest
+(slot currStatus (type STRING) (default "running"))
+(slot finalDest (type STRING) (default "NULL"))
 )
 
 ; ; The initial facts
@@ -346,7 +352,7 @@
 ;;GLOBALS
 (defglobal ?*totalDestination* = 0)
 (defglobal ?*userBudget* = 0)
-(defglobal ?*status* = running)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FIRING FILTERS (normal slot)
 (defrule fireWeatherFilter
@@ -419,10 +425,12 @@
 (defrule calculateExpense
 (desired (budget ?budget))
 (desired (daysReq ?daysReq))
+(destination (expenditure ?expenditure))
 (test (> ?daysReq -1))
 (test (> ?budget -1))
 =>
 (bind ?*userBudget* (* ?budget ?daysReq))
+(bind ?expenditure ?*userBudget*)
 )
 
 (defrule fireGeographyQuestion
@@ -505,11 +513,25 @@
 )
 
 
-;; if no of facts more than 1 and no qns,then status =terminate
-
-(defrule reportStatus
+;; if no qns left, but destinations below 2, i.e. 0 or 1
+(defrule reportFinalDest
 (not(exists (ask)))
-(test (> ?*totalDestination* 1))
+(destination (name ?name)(expenditure ?expenditure))
+(reportDest (currStatus ?currStatus) (finalDest ?finalDest))
+(test (< ?*totalDestination* 2))
 =>
-(bind ?*status* terminated)
+(bind ?currStatus terminated)
+(bind ?finalDest ?name)
+)
+
+;; if num of facts more than 1 and no qns,then status =terminate and choose max budget
+(defrule chooseOneDestination
+(not (exists (ask)))
+(test(> ?*totalDestination* 1))
+(reportDest (currStatus ?currStatus) (finalDest ?finalDest))
+(destination (name ?name) (expenditure ?expenditure1))
+(not (destination (expenditure ?expenditure2&:(> ?expenditure2 ?expenditure1))))
+=>
+(bind ?currStatus terminated)
+(bind ?finalDest ?name)
 )
