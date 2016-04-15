@@ -407,6 +407,19 @@
             (bind ?count ?*totalDestination*)
  (modify ?destinationCount (count ?count))
 )
+
+(defrule fireGeographyFilter
+(checkweather on)
+?desired <- (desired (geography ?desiredR))
+?destination <- (destination (geography ?destR))
+?destinationCount <- (destinationCount (count ?count))
+(test (neq ?desiredR ?destR) )
+=>
+(retract ?destination)
+(modify ?destinationCount (count (- ?count 1)))
+(bind ?*totalDestination* (- ?*totalDestination* 1))
+)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; QUESTION FIRING
 
@@ -527,7 +540,7 @@
 ;; if no qns left and destination  = 0, status = fail
 (defrule reportNoDest
 (not(exists (ask)))
-(test (= ?*totalDestination* 1))
+(test (= ?*totalDestination* 0))
 =>
 (bind ?currStatus fail)
 )
