@@ -63,12 +63,12 @@
 )
 
 (deftemplate destinationCount
-	(slot count (type INTEGER) (default 0))
+	(slot count (type INTEGER) (default -1))
 )
 
 (deftemplate reportDest
-(slot currStatus (type STRING) (default "running"))
-(slot finalDest (type STRING) (default "None"))
+(slot currStatus (type STRING) (default "Running"))
+(slot finalDest (type STRING)(default "None"))
 )
 
 ; ; The initial facts
@@ -344,8 +344,9 @@
 (destination (name "Zurich")(englishSpeaking"No")(expenditure -1)(visitPreference "Leisure" "Romantic" "Peace and Quiet" "Cultural" "NightLife" "Family Friendly")(region "Europe")(geography "City" "Mountains" "Wilderness" )(leisure "Casino" "Shopping" "Theme Park" "Landmarks" "Zoo" "Museum" "Dining")(daysReq -1)(avgHotel 289)(activityType "Water" "Outdoor")(waterActivity "Water Skiing" "Water Park" )(outdoorActivity "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" )(weather "Mild"))
 
   (count destination undone)
-    (destinationCount (count 0))
+    (destinationCount (count -1))
 	(desired)
+	(reportDest (currStatus "Running") (finalDest "None"))
 	;;(filter)
 )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -541,36 +542,48 @@
 (assert (count destination done))
 )
 
+(defrule countDest
+(not(exists(ask)))
+?f1<-(destinationCount(count -1))
+=>
+(modify ?f1 (count ?*totalDestination*))
+)
 
 ;; if no qns left and destination  = 1
 (defrule reportFinalDest
 (not(exists (ask)))
-(destination (name ?name)(expenditure ?expenditure))
-(reportDest (currStatus ?currStatus) (finalDest ?finalDest))
-(test (= ?*totalDestination* 1))
+(destination (name ?name))
+(destinationCount (count ?count))
+?f1<-(reportDest(currStatus "Running"))
+?f2<-(reportDest(finalDest "None"))
+(test (= ?count 1))
 =>
-(bind ?currStatus terminated)
-(bind ?finalDest ?name)
+(modify ?f1 (currStatus "Terminated"))
+(modify ?f2 (finalDest ?name))
 )
 
-;; if no qns left and destination  = 0, status = fail
+;; if no qns left and destination  = 0, status = Failed
 (defrule reportNoDest
 (not(exists (ask)))
-(test (= ?*totalDestination* 0))
+(destinationCount (count ?count))
+?f1<-(reportDest(currStatus "Running"))
+(test (= ?count 0))
 =>
-(bind ?currStatus fail)
+(modify ?f1 (currStatus "Terminated"))
 )
 
 ;; if num of facts more than 1 and no qns,then status =terminate and choose max budget
 (defrule chooseOneDestination
 (not (exists (ask)))
-(test(> ?*totalDestination* 1))
-(reportDest (currStatus ?currStatus) (finalDest ?finalDest))
+(destinationCount (count ?count))
 (destination (name ?name) (expenditure ?expenditure1))
+(test (> ?count 1))
+?f1<-(reportDest(currStatus "Running"))
+?f2<-(reportDest(finalDest "None"))
 (not (destination (expenditure ?expenditure2&:(> ?expenditure2 ?expenditure1))))
 =>
-(bind ?currStatus terminated)
-(bind ?finalDest ?name)
+(modify ?f1 (currStatus "Terminated"))
+(modify ?f2 (finalDest ?name))
 )
 
 (defrule calculateExpenditure
