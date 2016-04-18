@@ -60,11 +60,13 @@
 	(multislot waterActivity (type STRING) (default "None") (allowed-strings "None" "Surfing" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter"))
 	(multislot outdoorActivity (type STRING) (default "None") (allowed-strings "None" "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding"))
 	(slot weather (type STRING) (allowed-strings "None" "Hot" "Warm" "Mild" "Cold"))
+  (slot askRecommend (type STRING) (default "None"))
 )
 
 (deftemplate destinationCount
 	(slot count (type INTEGER) (default 0))
 )
+
 
 (deftemplate reportDest
 (slot currStatus (type STRING) (default "running"))
@@ -459,6 +461,13 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; QUESTION FIRING
+(defrule fireMultipleRecommendationsQuestion
+(declare (salience 40))
+?f<-(desired (askRecommend "None"))
+=>
+(modify ?f (askRecommend "Multiple"))
+(assert (ask (question "Do you prefer Single or Multiple recommendations for the trip?") (slotName "askRecommend") (questionType "RADIO") (choice "Single" "Multiple")))
+)
 
 (defrule fireBudgetQuestion
 ?desired <- (desired (budget -1))
@@ -506,6 +515,7 @@
 
 ;;if leisure chosen previous qn, fire this
 (defrule fireLeisureQuestion
+(declare (salience 20))
 (desired (visitPreference "Leisure"))
 ?desired <- (desired (leisure "None"))
 =>
@@ -519,12 +529,14 @@
 )
 
 (defrule fireWaterActivityQuestion
+(declare (salience 20))
 ?desired <- (desired (activityType $?x "Water" $?y) (waterActivity "None"))
 =>
 (assert (ask (question "What kind of water activities do you wish to take part in?") (choice "Surfing" "Scuba" "Snorkelling" "Water Skiing" "Water Park" "Wind Surfing" "Dolphin Encounter") (slotName "waterActivity") (questionType "CHECKBOX")))
 )
 
 (defrule fireOutdoorActivityQuestion
+(declare (salience 20))
 ?desired <- (desired (activityType $?x "Outdoor" $?y) (outdoorActivity "None"))
 =>
 (assert (ask (question "What kind of outdoor activities do you wish to take part in?") (choice "Mountain Biking" "Rock Climbing" "Hiking" "Snow Skiing" "Zip Line" "Horseback Riding") (slotName "outdoorActivity") (questionType "CHECKBOX")))
@@ -563,22 +575,21 @@
 
 ;; if num of facts more than 1 and no qns,then status =terminate and choose max budget
 (defrule chooseOneDestination
-(not (exists (ask)))
-(test(> ?*totalDestination* 1))
-(reportDest (currStatus ?currStatus) (finalDest ?finalDest))
-(destination (name ?name) (expenditure ?expenditure1))
-(not (destination (expenditure ?expenditure2&:(> ?expenditure2 ?expenditure1))))
+(desired (askRecommend "Single"))
+(not(exists(ask)))
+?f<-(destination (name ?name) (expenditure ?expenditure1))
+?f2<-(destination (name ?name2)  (expenditure ?expenditure2))
+(test (neq ?name ?name2))
+(test (> ?expenditure1 ?expenditure2))
+(test (> (countAllDestinations) 1))
 =>
-(bind ?currStatus terminated)
-(bind ?finalDest ?name)
+(retract ?f2)
 )
 
 (defrule calculateExpenditure
-(desired (budget ?budget))
 (desired (daysReq ?daysReq))
-?f<-(destination (expenditure -1))
+?f<-(destination (expenditure -1) (avgHotel ?avgHotel))
 (test (> ?daysReq -1))
-(test (> ?budget -1))
 =>
- (modify ?f  (expenditure (* ?budget ?daysReq)))
+ (modify ?f  (expenditure (* ?avgHotel ?daysReq)))
 )
